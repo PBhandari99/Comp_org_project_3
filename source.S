@@ -40,11 +40,11 @@ error_message: .asciiz "\nError: invalid arithmetic operation "
 		jal do_math  # making a function call(procedur call)
 
 
-	ori $v0, $0, 10
-	syscall
+		# ori $v0, $0, 10
+		# syscall
 
 	do_math:  # procedure decleration
-		addi $sp, $sp, -20
+		addi $sp, $sp, -16
 		li $t0, '+'
 		li $t1, '-'	
 		li $t2, '*'
@@ -52,6 +52,8 @@ error_message: .asciiz "\nError: invalid arithmetic operation "
 
 		beq $a1, $t0, print_add
 		beq $a1, $t1, print_sub
+		beq $a1, $t2, multiply
+
 		ori $v0, $zero, 10
 		syscall
 
@@ -68,7 +70,7 @@ error_message: .asciiz "\nError: invalid arithmetic operation "
 
 
 	do_add:   # procedure decleration for addition
-		sw $ra, 0($sp)  # savig the return address
+		sw $ra, 0($sp)  # saving the return address
 		loop:
 			xor $t0, $a0, $a2  # sum
 			and $t1, $a0, $a2 	# carry
@@ -82,7 +84,6 @@ error_message: .asciiz "\nError: invalid arithmetic operation "
 	
 	print_sub:
 		jal do_subtract
-
 		addi $a0, $v0, 0  # move the return value v0 to a0
 		li $v0, 1  		#   for printint the value in a0
 		syscall			
@@ -106,3 +107,36 @@ error_message: .asciiz "\nError: invalid arithmetic operation "
 		lw $ra, 4($sp)
 
 		jr $ra
+
+	print_mult:
+	  # addi $s4, $0, 0 
+	  sw $ra, 12($sp)
+	  li $v0, 1
+	  move $a0, $s4
+	  # ori $a0, $v0, 0
+	  # ori $v0, $0, 1
+	  syscall
+	  ori $v0, $0, 10
+	  syscall
+
+	multiply:
+		ori $t0, $a0, 0 #x
+		ori $t1, $a2, 0 #y
+		ori $s4, $zero, 0
+
+	while_loop_check:
+		bne $t1, $0, do_multiply
+		j print_mult
+
+	do_multiply:
+	  andi $t2, $t1, 1 #t2 = n & 01
+	  beq $t2, $0, shift
+	  ori $a0, $s4, 0
+	  ori $a2, $t0, 0
+	  jal do_add
+	  ori $s4, $v0, 0
+
+	shift:
+	  sll $t0, $t0, 1
+	  srl $t1, $t1, 1
+	  j while_loop_check 
